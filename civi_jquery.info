@@ -1,0 +1,5 @@
+name = Civi-jQuery
+description = Use the copy of jQuery from CiviCRM instead of the older version bundled with Drupal 7.
+core = 7.x
+package = CiviCRM
+dependencies[] = civicrm (>=4.6)
