@@ -11,6 +11,7 @@ function civi_jquery_library_alter(&$libraries, $module) {
     $info = json_decode(file_get_contents(DRUPAL_ROOT . "/$civicrm_path/bower_components/jquery/bower.json"));
     $libraries['jquery']['version'] = $info->version;
     $libraries['jquery']['js']['misc/jquery.js']['data'] = "$civicrm_path/bower_components/jquery/dist/jquery.min.js";
+    drupal_add_js(drupal_get_path('module', 'civi_jquery') . '/js/browser_shim.js', array('group' => JS_LIBRARY, 'weight' => -19));
 
     // Update jQuery-UI
     $redundant = array('ui', 'effects');
