@@ -41,6 +41,7 @@ function civi_jquery_library_alter(&$libraries, $module) {
     $libraries['jquery.form']['js']['misc/jquery.form.js']['data'] = "$civicrm_path/packages/jquery/plugins/jquery.form.min.js";
 
     // If we are on a CiviCRM page, do not load redundant libraries
+    // FIXME: This arg(0) test is not 100% accurate (civi core resources also sometimes load elsewhere)
     if (arg(0) === 'civicrm') {
       foreach ($redundant as $lib) {
         $libraries[$lib]['css'] = $libraries[$lib]['js'] = array();
