@@ -6,32 +6,31 @@
 function civi_jquery_library_alter(&$libraries, $module) {
   if ($module === 'system') {
     $civicrm_path = substr(drupal_get_path('module', 'civicrm'), 0, -7);
+    $jquery_path = "$civicrm_path/bower_components/jquery";
 
     // Update jQuery
-    $info = json_decode(file_get_contents(DRUPAL_ROOT . "/$civicrm_path/bower_components/jquery/bower.json"));
+    $info = json_decode(file_get_contents(DRUPAL_ROOT . "/$jquery_path/bower.json"));
     $libraries['jquery']['version'] = $info->version;
-    $libraries['jquery']['js']['misc/jquery.js']['data'] = "$civicrm_path/bower_components/jquery/dist/jquery.min.js";
+    $libraries['jquery']['js']['misc/jquery.js']['data'] = "$jquery_path/dist/jquery.min.js";
     drupal_add_js(drupal_get_path('module', 'civi_jquery') . '/js/browser_shim.js', array('group' => JS_LIBRARY, 'weight' => -19));
 
     // Update jQuery-UI
     $redundant = array('ui', 'effects');
-    $info = json_decode(file_get_contents(DRUPAL_ROOT . "/$civicrm_path/bower_components/jquery-ui/bower.json"));
-    $libraries['ui']['version'] = $info->version;
-    $libraries['ui']['js']['misc/ui/jquery.ui.core.min.js']['data'] = "$civicrm_path/bower_components/jquery-ui/ui/minified/core.min.js";
-    $libraries['ui']['css']['misc/ui/jquery.ui.core.css']['data'] = "$civicrm_path/bower_components/jquery-ui/themes/base/core.css";
-    $libraries['ui']['css']['misc/ui/jquery.ui.theme.css']['data'] = "$civicrm_path/bower_components/jquery-ui/themes/base/theme.css";
-    $libraries['effects']['js']['misc/ui/jquery.effects.core.min.js']['data'] = "$civicrm_path/bower_components/jquery-ui/ui/minified/effect.min.js";
+    $info = json_decode(file_get_contents(DRUPAL_ROOT . "/$jquery_path-ui/bower.json"));
+    $libraries['ui']['version'] = $libraries['effects']['version'] = $info->version;
+    $libraries['ui']['js']['misc/ui/jquery.ui.core.min.js']['data'] = "$jquery_path-ui/ui/minified/core.min.js";
+    $libraries['ui']['css']['misc/ui/jquery.ui.core.css']['data'] = "$jquery_path-ui/themes/base/core.css";
+    $libraries['ui']['css']['misc/ui/jquery.ui.theme.css']['data'] = "$jquery_path-ui/themes/base/theme.css";
+    $libraries['effects']['js']['misc/ui/jquery.effects.core.min.js']['data'] = "$jquery_path-ui/ui/minified/effect.min.js";
     foreach ($libraries as $key => &$library) {
-      if (strpos($key, 'ui.') === 0) {
+      if (strpos($key, 'ui.') === 0 || strpos($key, 'effects.') === 0) {
         $redundant[] = $key;
-        $lib = substr($key, 3);
-        $library['js']["misc/ui/jquery.ui.$lib.min.js"]['data'] = "$civicrm_path/bower_components/jquery-ui/ui/minified/$lib.min.js";
-        $library['css']["misc/ui/jquery.ui.$lib.css"]['data'] = "$civicrm_path/bower_components/jquery-ui/themes/base/$lib.css";
-      }
-      if (strpos($key, 'effects.') === 0) {
-        $redundant[] = $key;
-        $lib = substr($key, 8);
-        $library['js']["misc/ui/jquery.effects.$lib.min.js"]['data'] = "$civicrm_path/bower_components/jquery-ui/ui/minified/effect-$lib.min.js";
+        $library['version'] = $info->version;
+        list($group, $lib) = explode('.', $key, 2);
+        $library['js']["misc/ui/jquery.$group.$lib.min.js"]['data'] = "$jquery_path-ui/ui/minified/" . ($group == 'effects' ? 'effect-' : '') . "$lib.min.js";
+        if ($group == 'ui') {
+          $library['css']["misc/ui/jquery.ui.$lib.css"]['data'] = "$jquery_path-ui/themes/base/$lib.css";
+        }
       }
     }
 
@@ -41,7 +40,7 @@ function civi_jquery_library_alter(&$libraries, $module) {
     $libraries['jquery.form']['js']['misc/jquery.form.js']['data'] = "$civicrm_path/packages/jquery/plugins/jquery.form.min.js";
 
     // If we are on a CiviCRM page, do not load redundant libraries
-    // FIXME: This arg(0) test is not 100% accurate (civi core resources also sometimes load elsewhere)
+    // FIXME: This arg(0) test is not 100% accurate (civi core resources sometimes load elsewhere)
     if (arg(0) === 'civicrm') {
       foreach ($redundant as $lib) {
         $libraries[$lib]['css'] = $libraries[$lib]['js'] = array();
@@ -56,7 +55,9 @@ function civi_jquery_library_alter(&$libraries, $module) {
 function civi_jquery_civicrm_coreResourceList(&$list, $region) {
   if ($region === 'html-header') {
     $unwanted = array(
+      // Remove jquery becuase we've added it as a drupal library instead
       'bower_components/jquery/dist/jquery.min.js',
+      // This deprecated script causes errors and is removed in 4.7 anyway
       'packages/jquery/plugins/jquery.textarearesizer.js'
     );
     foreach ($unwanted as $item) {
