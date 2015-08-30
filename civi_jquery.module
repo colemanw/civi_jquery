@@ -55,7 +55,7 @@ function civi_jquery_library_alter(&$libraries, $module) {
 function civi_jquery_civicrm_coreResourceList(&$list, $region) {
   if ($region === 'html-header') {
     $unwanted = array(
-      // Remove jquery becuase we've added it as a drupal library instead
+      // Remove jQuery because we've added it as a Drupal library instead
       'bower_components/jquery/dist/jquery.min.js',
       // This deprecated script causes errors and is removed in 4.7 anyway
       'packages/jquery/plugins/jquery.textarearesizer.js'
